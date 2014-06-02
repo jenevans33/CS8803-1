@@ -1,5 +1,3 @@
-# Write a function 'filter' that implements a multi-
-# dimensional Kalman Filter for the example given
 
 from math import *
 
@@ -135,11 +133,6 @@ class matrix:
     def __repr__(self):
         return repr(self.value)
 
-
-########################################
-
-# Implement the filter function below
-
 def filter(x, P):
     for n in range(len(measurements)):
         
@@ -155,8 +148,6 @@ def filter(x, P):
         x = (F * x) + u
         P = F * P * F.transpose()
         
-        # don't change these print/show statements here---
-        # they are for the grader to check your answer
         print 'x= '
         x.show()
         print 'P= '

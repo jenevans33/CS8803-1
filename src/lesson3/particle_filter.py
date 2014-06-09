@@ -6,14 +6,13 @@ import random
 # some top level parameters
 #
 
-max_steering_angle = pi / 4.0 # You do not need to use this value, but keep in mind the limitations of a real car.
+max_steering_angle = pi / 4.0 # mimic the limitations of a real car.
 bearing_noise = 0.1 # Noise parameter: should be included in sense function.
 steering_noise = 0.1 # Noise parameter: should be included in move function.
 distance_noise = 5.0 # Noise parameter: should be included in move function.
 
 tolerance_xy = 15.0 # Tolerance for localization in the x and y directions.
 tolerance_orientation = 0.25 # Tolerance for orientation.
-
 
 # --------
 # 
@@ -82,14 +81,12 @@ class robot:
         # calculate the correct measurement
         predicted_measurements = self.sense(0) # Our sense function took 0 as an argument to switch off noise.
 
-
         # compute errors
         error = 1.0
         for i in range(len(measurements)):
             error_bearing = abs(measurements[i] - predicted_measurements[i])
             error_bearing = (error_bearing + pi) % (2.0 * pi) - pi # truncate
             
-
             # update Gaussian
             error *= (exp(- (error_bearing ** 2) / (self.bearing_noise ** 2) / 2.0) /  
                       sqrt(2.0 * pi * (self.bearing_noise ** 2)))
@@ -99,8 +96,7 @@ class robot:
     def __repr__(self): #allows us to print robot attributes.
         return '[x=%.6s y=%.6s orient=%.6s]' % (str(self.x), str(self.y), 
                                                 str(self.orientation))
-
-       
+      
     # --------
     # move: 
     #   
@@ -184,7 +180,6 @@ def get_position(p):
 # You can use it to develop your solution.
 # 
 
-
 def generate_ground_truth(motions):
 
     myrobot = robot()
@@ -234,8 +229,6 @@ def check_output(final_robot, estimated_position):
               and error_orientation < tolerance_orientation
     return correct
 
-
-
 def particle_filter(motions, measurements, N=500): 
     # --------
     #
@@ -281,10 +274,6 @@ def particle_filter(motions, measurements, N=500):
     
     return get_position(p)
 
-## IMPORTANT: You may uncomment the test cases below to test your code.
-## But when you submit this code, your test cases MUST be commented
-## out.
-##
 ## You can test whether your particle filter works using the
 ## function check_output (see test case 2). We will be using a similar
 ## function. Note: Even for a well-implemented particle filter this
@@ -294,7 +283,6 @@ def particle_filter(motions, measurements, N=500):
 ## of the time.
 
 
- 
 ## --------
 ## TEST CASES:
 ## 

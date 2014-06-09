@@ -109,38 +109,43 @@ def eval(r, p):
 #print myrobot.sense()
 
 myrobot = robot()
-myrobot = myrobot.move(0.1, 5.0)
-Z = myrobot.sense()
-
 N = 1000
 p = []
+T = 10
+
 for i in range(N):
     x = robot()
     x.set_noise(0.05, 0.05, 5.0)
     p.append(x)
 
-p2 = []
-for i in range(N):
-    p2.append(p[i].move(0.1, 5.0))
-p = p2
+for t in range(T):
+    myrobot = myrobot.move(0.1, 5.0)
+    Z = myrobot.sense()
 
-w = []
-for i in range(len(p)):
-    x = p[i].measurement_prob(Z)
-    w.append(x)
+    p2 = []
+    for i in range(N):
+        p2.append(p[i].move(0.1, 5.0))
+    p = p2
     
-p3 = []
-index = int(random.random() * N)
-beta = 0
-mw = max(w)
-for i in range(N):
-    beta += random.random() * 2.0 * mw
-    while beta > w[index]:
-        beta -= w[index]
-        index = (index + 1) % N
-    p3.append(p[index])
+    w = []
+    for i in range(len(p)):
+        x = p[i].measurement_prob(Z)
+        w.append(x)
+        
+    p3 = []
+    index = int(random.random() * N)
+    beta = 0
+    mw = max(w)
+    for i in range(N):
+        beta += random.random() * 2.0 * mw
+        while beta > w[index]:
+            beta -= w[index]
+            index = (index + 1) % N
+        p3.append(p[index])
+        
+    p = p3
     
-p = p3
-    
-print p
+    e = eval(myrobot, p)
+    print e
+#print p
 

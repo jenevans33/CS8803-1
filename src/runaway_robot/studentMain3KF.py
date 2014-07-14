@@ -51,7 +51,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
         P = OTHER[1]
         old_target = OTHER[2]
         theta = OTHER[3]
-   
+    print "NOISY MEASUREMENT:  ", target_measurement
     x = matrix([[target_measurement[0]], [target_measurement[1]], [0.], [0.]])
     
     new_x, P = filter(x, P, measurements[-25:])
@@ -59,7 +59,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
     xprime = new_x.value[0][0]
     yprime = new_x.value[1][0]
     fixed_target = (xprime, yprime)
-
+    print "FIXED MEASUREMENT:  ", fixed_target
     delta_y = fixed_target[1] - old_target[1]
     delta_x = fixed_target[0] - old_target[0]
     
@@ -103,6 +103,7 @@ def demo_grading(hunter_bot, target_bot, next_move_fcn, OTHER = None):
         # Check to see if the hunter has caught the target.
         hunter_position = (hunter_bot.x, hunter_bot.y)
         target_position = (target_bot.x, target_bot.y)
+        print "TARGET POSITION:  ", target_position
         separation = distance_between(hunter_position, target_position)
         if separation < separation_tolerance:
             print "You got it right! It took you ", ctr, " steps to catch the target."

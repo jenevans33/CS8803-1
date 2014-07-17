@@ -122,7 +122,7 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
         heading = get_heading(measurements[len(measurements) - 1], fixed_target)
         test_robot = robot(target_measurement[0], target_measurement[1], heading, mean(tan), dist_mean)
         #add a little noise in to hopefully cancel out some of the noise from the target
-        mn = .025
+        mn = .02
         test_robot.set_noise(0.0, 0.0, mn)  
         test_robot.move_in_circle()
         next_spot = test_robot.sense()
@@ -282,9 +282,8 @@ def naive_next_move(hunter_position, hunter_heading, target_measurement, max_dis
     return turning, distance, OTHER
 
 
-target = robot(0.0, 10.0, 0.0, 2*pi / 30, 2.0)
+target = robot(0.0, 10.0, 0.0, 2*pi / 30, 1.5)
 measurement_noise = .05*target.distance
-#measurement_noise = 0.0
 target.set_noise(0.0, 0.0, measurement_noise)
 
 hunter = robot(-10.0, -10.0, 0.0)

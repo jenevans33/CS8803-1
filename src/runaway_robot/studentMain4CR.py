@@ -78,8 +78,8 @@ def next_move(hunter_position, hunter_heading, target_measurement, max_distance,
     #####  BUILDING THE CIRCLE AND TAKING RADIUS #####
     x_set.append(target_measurement[0])
     y_set.append(target_measurement[1])
-    x_na = r_[x_set[-50:]]
-    y_na = r_[y_set[-50:]]    
+    x_na = r_[x_set]
+    y_na = r_[y_set]    
     x_m = mean(x_na)
     y_m = mean(y_na)   
     

@@ -160,8 +160,8 @@ print "Distance Between Mean: ", db_mean
 
 #####TESTING AREA#####
 #predict_map = test_prediction(map, db_mean, len(map) - 2, None)
-write_map_to_file(map)
-#scatter_plot_it(map)
+#write_map_to_file(map)
+scatter_plot_it(map[100:250])
 
 #####REAL DATA RUN AREA####
 #predict_map = predict_next(map, db_mean, 10)

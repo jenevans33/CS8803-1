@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import re
 from math import *
 
@@ -95,6 +96,12 @@ def test_prediction(mapfile, d, start=None, stop=None):
 def predict_next(mapfile, d, frames):
     #predict the next n number of frames
     
+    #TODO:  instead of just arbitrarily using the current angle I think we should analyze the last say 5 points and
+    #       angles to make sure the last one is not an anomaly.  If it is use the mean of the correct ones.
+    
+    #TODO:  when we get the point back from next_move need to make sure it wouldn't have hit a wall and bounced.  
+    #       if it would then call the bounce function and replace the coordinates and angle with that.
+    
     curpoint = mapfile[len(mapfile) - 2]
     pm = []
     for i in range(frames):
@@ -104,10 +111,36 @@ def predict_next(mapfile, d, frames):
         curpoint = {"cur_point" : [x,y], "angle" : curpoint["angle"]}
     return pm
 
+def scatter_plot_it(map):
+    #This produces a very simple scatter plot of the coordinate data passed in.  You should only pass in a slice
+    #of the total data (100 - 200 points max) or else the points get so tightly bundled you can't really make much 
+    #out of it.  This is purely for testing and analysis purposes.
+    x_data = []
+    y_data = []
+    for i in range(len(map)):
+        if map[i]["cur_point"] != [-1, -1]:
+            x_data.append(map[i]["cur_point"][0]) 
+            y_data.append(map[i]["cur_point"][1])
+            
+    print "XDATA: ", len(x_data)
+    print "YDATA: ", len(y_data)
+    
+    # Create a Figure object.
+    fig = plt.figure(figsize=(10, 8))
+    # Create an Axes object.
+    ax = fig.add_subplot(1,1,1) # one row, one column, first plot
+    # Plot the data.
+    ax.scatter(x_data, y_data, color="blue", marker="o")
+    # Add a title.
+    ax.set_title("Data Scatter Plot")
+    # Add some axis labels.
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    # Produce an image.
+    plt.show()
+
 ##########CONFIGURABLE##########
 input_file = 'training_video1-centroid_data'
-
-
 
 ##########END CONFIGURABLE######
 
@@ -125,12 +158,12 @@ print "Map Length:  ", len(map)
 db_mean = get_distance_mean(map)
 print "Distance Between Mean: ", db_mean  
 
-#This is a test
+#####TESTING AREA#####
 #predict_map = test_prediction(map, db_mean, len(map) - 2, None)
-
-#This would be for real
-predict_map = predict_next(map, db_mean, 10)
-
-print predict_map
-
 write_map_to_file(map)
+#scatter_plot_it(map)
+
+#####REAL DATA RUN AREA####
+#predict_map = predict_next(map, db_mean, 10)
+#print predict_map
+

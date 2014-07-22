@@ -52,7 +52,7 @@ def process(in_a):
             previous_point = None
             dict = {"id" : i, "db" : None, "angle" : None, "pre_point" : previous_point, "cur_point" : in_a[i]}
         m.append(dict)
-    return np.array(m), min(allX), max(allX), min(allY), max(allY)
+    return m, min(allX), max(allX), min(allY), max(allY)
 
 def simple_next_move(current, distance, heading):
     #Simple next move.  Take current move, avg distance, and heading to predict next spot.
@@ -68,17 +68,51 @@ def get_distance_mean(map):
             dblist.append(map[i]["db"])   
     return np.mean(dblist) 
 
-def predict_next(mapfile, d, id=all):
+def test_prediction(mapfile, d, start=None, stop=None):
+    #test predict next steps.  This is just for testing out the code.  The real predict next
+    #function to use for getting the frames to turn in will be predict_next()
+    if start and not stop:
+        ta = [mapfile[start]]
+    elif start and stop:
+        ta = mapfile[start:stop]
+    elif stop and not start:
+        #throw error
+        raise Exception('Having a stop with no start makes no sense')
+    else:
+        #no start and no stop...do whole map
+        #Need to really work on this because a bad point will blow this whole thing up.
+        ta = mapfile
+       
     pm = []
-    if id != all:
-        cur_point = mapfile[id]
+    for i in range(len(ta)):
+        cur_point = ta[i]
         x,y = simple_next_move(cur_point["cur_point"], d, cur_point["angle"])
         hm = {"coord" : [x,y]}
         pm.append(hm)
         
     return pm
+
+def predict_next(mapfile, d, frames):
+    #predict the next n number of frames
+    
+    curpoint = mapfile[len(mapfile) - 2]
+    pm = []
+    for i in range(frames):
+        x,y = simple_next_move(curpoint["cur_point"], d, curpoint["angle"])
+        hm = {"coord" : [x,y]}
+        pm.append(hm)
+        curpoint = {"cur_point" : [x,y], "angle" : curpoint["angle"]}
+    return pm
+
+##########CONFIGURABLE##########
+input_file = 'training_video1-centroid_data'
+
+
+
+##########END CONFIGURABLE######
+
 #Get the input array
-input_array = get_input('training_video1-centroid_data')
+input_array = get_input(input_file)
 
 #Process input array to get map and boundaries of box
 map, minX, maxX, minY, maxY = process(input_array)
@@ -92,7 +126,10 @@ db_mean = get_distance_mean(map)
 print "Distance Between Mean: ", db_mean  
 
 #This is a test
-predict_map = predict_next(map, db_mean, 25008)
+#predict_map = test_prediction(map, db_mean, len(map) - 2, None)
+
+#This would be for real
+predict_map = predict_next(map, db_mean, 10)
 
 print predict_map
 

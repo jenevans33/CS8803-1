@@ -122,9 +122,6 @@ def scatter_plot_it(map):
             x_data.append(map[i]["cur_point"][0]) 
             y_data.append(map[i]["cur_point"][1])
             
-    print "XDATA: ", len(x_data)
-    print "YDATA: ", len(y_data)
-    
     # Create a Figure object.
     fig = plt.figure(figsize=(10, 8))
     # Create an Axes object.

@@ -69,7 +69,7 @@ def get_distance_mean(map):
             dblist.append(map[i]["db"])   
     return np.mean(dblist) 
 
-def test_prediction(mapfile, d, start=None, stop=None):
+def test_prediction(mapfile, d, boundaryDictionary, start=None, stop=None):
     #test predict next steps.  This is just for testing out the code.  The real predict next
     #function to use for getting the frames to turn in will be predict_next()
     if start and not stop:
@@ -93,7 +93,7 @@ def test_prediction(mapfile, d, start=None, stop=None):
         
     return pm
 
-def predict_next(mapfile, d, frames):
+def predict_next(mapfile, d, frames, boundaryDictionary):
     #predict the next n number of frames
     
     #TODO:  instead of just arbitrarily using the current angle I think we should analyze the last say 5 points and
@@ -106,9 +106,24 @@ def predict_next(mapfile, d, frames):
     pm = []
     for i in range(frames):
         x,y = simple_next_move(curpoint["cur_point"], d, curpoint["angle"])
-        hm = {"coord" : [x,y]}
-        pm.append(hm)
-        curpoint = {"cur_point" : [x,y], "angle" : curpoint["angle"]}
+        #does x or y hit a boundary
+        if x <= boundaryDictionary["left"] or x >= boundaryDictionary["right"]:
+            #hit x boundary
+            print "HIT X BOUNDARY WITH PREDICTED POINT:  ", (x,y)
+            (x,y), angle = bounce(curpoint["cur_point"], d, curpoint["angle"], boundaryDictionary)
+            hm = {"coord" : [x,y]}
+            curpoint = {"cur_point" : [x,y], "angle" : angle}
+        elif y <= boundaryDictionary["bottom"] or y >= boundaryDictionary["top"]:
+            #hit y boundary
+            print "HIT Y BOUNDARY WITH PREDICTED POINT:  ", (x,y)
+            (x,y), angle = bounce(curpoint["cur_point"], d, curpoint["angle"], boundaryDictionary)
+            hm = {"coord" : [x,y]}
+            curpoint = {"cur_point" : [x,y], "angle" : angle}            
+        else:
+            #didn't hit a boundary
+            hm = {"coord" : [x,y]}
+            pm.append(hm)
+            curpoint = {"cur_point" : [x,y], "angle" : curpoint["angle"]}
     return pm
 
 def scatter_plot_it(map):
@@ -136,6 +151,131 @@ def scatter_plot_it(map):
     # Produce an image.
     plt.show()
 
+def getHeading(angle):
+    #which direction are we heading?
+    if angle > pi: #heading down
+        if angle > 3.0*pi/2.0: #heading right
+            heading = {"vertical" : "down", "horizontal" : "right"}
+        else: #heading left
+            heading = {"vertical" : "down", "horizontal" : "left"}
+    else: #heading up
+        if angle > pi/2.0: #heading left
+            heading = {"vertical" : "up", "horizontal" : "left"}
+        else: #heading right
+            heading = {"vertical" : "up", "horizontal" : "right"}
+    return heading
+
+def splitVelocity(velocity, angle):
+    #find x and y components of velocity
+    velocityX = velocity * cos(angle)
+    velocityY = velocity * sin(angle)
+    return velocityX, velocityY
+
+def whichWallHit(heading, velocityX, velocityY, boundaryDictionary, position):
+    #which wall are we hitting?
+    print "VelocityX:  ", velocityX
+    print "VelocityY:  ", velocityY
+    print "Heading:  ", heading
+    print "Position:  ", position
+    wallHit = []
+    if heading["vertical"] == "up": #check distance from top
+        print "GOING UP"
+        distance = abs(position[1] - boundaryDictionary["top"])
+        if distance < velocityY:
+            wallHit.append(["top", distance])
+    else: #heading["vertical"] == "down" so check distance from bottom
+        print "GOING DOWN"
+        distance = abs(position[1] - boundaryDictionary["bottom"])
+        if distance < velocityY:
+            wallHit.append(["bottom", distance])
+    
+    if heading["horizontal"] == "right": #check distance from right
+        print "GOING RIGHT"
+        distance = abs(position[0] - boundaryDictionary["right"])
+        if distance < velocityX:
+            wallHit.append(["right", distance])
+    else: # heading["horizontal"] == "left": #check distance from left
+        print "GOING LEFT"
+        distance = abs(position[0] - boundaryDictionary["left"])
+        if distance < velocityX:
+            wallHit.append(["left", distance])
+            
+    if len(wallHit) > 1: #need to sort in order of wall hit first
+        wallHit.sort()
+    print "Wallhit", wallHit ##CODE TESTING
+    return wallHit
+
+
+def oneBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary):
+    dist2wall = wallHit[0][1]
+    if (wallHit[0][0] == "top") or (wallHit[0][0] == "bottom"):
+        newX = (position[0] + velocityX) #X just keeps moving same direction
+        newAngle = 2.0*pi - angle
+        if (wallHit[0][0] == "bottom"):
+            newY = boundaryDictionary[wallHit[0][0]] - (velocityY - dist2wall) #max Y value minues leftover velocity
+        else: #top
+            newY = boundaryDictionary[wallHit[0][0]] + (velocityY - dist2wall) #min Y value plus leftover velocity           
+        
+    elif (wallHit[0][0] == "left") or (wallHit[0][0] == "right"):
+        newY = (position[1] + velocityY)  #Y just keeps moving same direction
+        newAngle = pi/2.0 - angle
+        if (wallHit[0][0] == "right"):
+            newX = boundaryDictionary[wallHit[0][0]] - (velocityX - dist2wall) #max X value minus leftover velocity
+        else: #left
+            newX = boundaryDictionary[wallHit[0][0]] + (velocityX - dist2wall) #min X value plus leftover velocity        
+    return newX, newY, newAngle
+    
+def twoBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary):
+    for i in range(2):
+        dist2wall = wallHit[i][1]
+        if (wallHit[i][0] == "top") or (wallHit[i][0] == "bottom"):
+            newAngle = 2.0*pi - angle
+            if (wallHit[i][0] == "bottom"):
+                newY = boundaryDictionary[wallHit[i][0]] - (velocityY - dist2wall) #max Y value minues leftover velocity
+            else: #top
+                newY = boundaryDictionary[wallHit[i][0]] + (velocityY - dist2wall) #min Y value plus leftover velocity           
+        
+        elif (wallHit[i][0] == "left") or (wallHit[i][0] == "right"):
+            newAngle = pi/2.0 - angle
+            if (wallHit[i][0] == "right"):
+                newX = boundaryDictionary[wallHit[i][0]] - (velocityX - dist2wall) #max X value minus leftover velocity
+            else: #left
+                newX = boundaryDictionary[wallHit[i][0]] + (velocityX - dist2wall) #min X value plus leftover velocity       
+    return newX, newY, newAngle
+    
+def bounce(position, velocity, angle, boundaryDictionary):
+    """Function receives a center of mass position, velocity and angle,
+    along with a dictionary of the boundary positions top, bottom, left and right.
+    It compares the current position, velocity and angle with the boundary 
+    positions and determines where it will hit the wall and bounce. It returns a
+    new postion and angle, one "move" later. It assumes the velocity is not
+    impacted by the bounce.
+    Function should be called after a check that we are within 1 move of a wall."""
+        
+    angle = angle%(2.0*pi) #ensure angle is % 2*pi
+              
+    heading = getHeading(angle) #ensure angle is CCW direction (no negative angles)
+                       
+    velocityX, velocityY = splitVelocity(velocity, angle) #get X and Y components of velocity vector
+      
+    wallHit = whichWallHit(heading, velocityX, velocityY, boundaryDictionary, position) #determine where we are hitting
+
+        
+    #reflect to new X and Y coords -- SIMPLE 1 Bounce
+    if len(wallHit) == 1:
+        newX, newY, newAngle = oneBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
+           
+    #reflect to new X and Y coords: corner hit with first and then second bounces
+    if len(wallHit) == 2:
+        newX, newY, newAngle = twoBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
+        
+    #quick error check
+    if len(wallHit) > 2:
+        print "oops, something went very wrong! too many hits"   
+            
+    return (newX,newY), newAngle
+
+
 ##########CONFIGURABLE##########
 input_file = 'training_video1-centroid_data'
 
@@ -151,16 +291,19 @@ print "Max X:  ", maxX
 print "Min Y:  ", minY
 print "Max Y:  ", maxY
 print "Map Length:  ", len(map)
-  
+
+boundaryDictionary = {'top':maxY, 'bottom':minY, 'left':minX, 'right':maxX}  
+print "BD:  ", boundaryDictionary 
+
 db_mean = get_distance_mean(map)
 print "Distance Between Mean: ", db_mean  
 
 #####TESTING AREA#####
 #predict_map = test_prediction(map, db_mean, len(map) - 2, None)
 #write_map_to_file(map)
-scatter_plot_it(map[100:250])
+#scatter_plot_it(map[100:250])
 
 #####REAL DATA RUN AREA####
-#predict_map = predict_next(map, db_mean, 10)
-#print predict_map
+predict_map = predict_next(map, db_mean, 70, boundaryDictionary)
+print predict_map
 

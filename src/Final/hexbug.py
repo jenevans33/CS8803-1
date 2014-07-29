@@ -1,5 +1,4 @@
 import numpy as np
-import re
 from math import *
 
 class hexbug:
@@ -39,19 +38,46 @@ class hexbug:
                 previous_point = None
                 dict = {"id" : i, "db" : None, "angle" : None, "pre_point" : previous_point, "cur_point" : in_a[i]}
             m.append(dict)
-        return m, min(allX), max(allX), min(allY), max(allY)
+            
+        #There are some points that are way off from the rest and are anomalies that should not be used
+        #for min and max determination.  If the point is within 10 of the next point then it should be ok.    
+        sorted_maxX = sorted(allX, reverse=True)
+        sorted_maxY = sorted(allY, reverse=True)
+        sorted_minX = sorted(allX)
+        sorted_minY = sorted(allY)
+        for i in range(len(sorted_maxX)):
+            if sorted_maxX[i] - sorted_maxX[i + 1] <= 10:
+                maxX = sorted_maxX[i]
+                break
+        for i in range(len(sorted_maxY)):
+            if sorted_maxY[i] - sorted_maxY[i + 1] <= 10:
+                maxY = sorted_maxY[i]
+                break        
+        for i in range(len(sorted_minX)):
+            if sorted_minX[i + 1] - sorted_minX[i] <= 10:
+                minX = sorted_minX[i]
+                break
+        for i in range(len(sorted_minY)):
+            if sorted_minY[i + 1] - sorted_minY[i] <= 10:
+                minY = sorted_minY[i]
+                break        
+        return m, minX, maxX, minY, maxY
     
     def simple_next_move(self, current, distance, heading):
         #Simple next move.  Take current move, avg distance, and heading to predict next spot.
+        print "SNM-CURRENT POS:  ", current
+        print "SNM-DISTANCE:  ", distance
+        print "SNM-HEADING:  ", heading
         x = current[0] + distance * cos(heading)
-        y = current[1] + distance * sin(heading)     
+        y = current[1] + distance * sin(heading)   
+        print "SNM-NEXT POS:  ", (x,y)  
         return (int(x), int(y))
         
     def get_distance_mean(self, map):
         #returns the mean distance based on the input map.
         dblist = []
         for i in range(len(map)):
-            if map[i]["db"] != None:
+            if map[i]["db"] != None and map[i]["db"] != 0.0:
                 dblist.append(map[i]["db"])   
         return np.mean(dblist) 
     
@@ -90,11 +116,12 @@ class hexbug:
         
         curpoint = mapfile[len(mapfile) - 2]
         pm = []
+        hitWall = False
         for i in range(frames):
             x,y = self.simple_next_move(curpoint["cur_point"], dist, curpoint["angle"])
             print "PN-CURPOINT:  ", curpoint
             #does x or y hit a boundary
-            if x <= boundaryDictionary["left"] or x >= boundaryDictionary["right"]:
+            if (x <= boundaryDictionary["left"] or x >= boundaryDictionary["right"]) and not hitWall:
                 #hit x boundary
                 print "HIT X BOUNDARY WITH PREDICTED POINT:  ", (x,y)
                 curX, curY = curpoint["cur_point"]
@@ -103,7 +130,8 @@ class hexbug:
                 (x,y), angle = self.bounce(curpoint["cur_point"], (diffX,diffY), curpoint["angle"], boundaryDictionary)
                 hm = {"coord" : [x,y]}
                 curpoint = {"cur_point" : [x,y], "angle" : angle}
-            elif y <= boundaryDictionary["bottom"] or y >= boundaryDictionary["top"]:
+                hitWall = True
+            elif (y <= boundaryDictionary["bottom"] or y >= boundaryDictionary["top"]) and not hitWall:
                 #hit y boundary
                 print "HIT Y BOUNDARY WITH PREDICTED POINT:  ", (x,y)
                 curX, curY = curpoint["cur_point"]
@@ -111,12 +139,14 @@ class hexbug:
                 diffY = abs(y - curY)            
                 (x,y), angle = self.bounce(curpoint["cur_point"], (diffX,diffY), curpoint["angle"], boundaryDictionary)
                 hm = {"coord" : [x,y]}
-                curpoint = {"cur_point" : [x,y], "angle" : angle}            
+                curpoint = {"cur_point" : [x,y], "angle" : angle} 
+                hitWall = True           
             else:
                 #didn't hit a boundary
                 print "NO BOUNDARY HIT"
                 hm = {"coord" : [x,y]}
                 curpoint = {"cur_point" : [x,y], "angle" : curpoint["angle"]}
+                hitWall = False
             pm.append(hm)
         return pm        
     
@@ -224,7 +254,9 @@ class hexbug:
           
         wallHit = self.whichWallHit(heading, velocityX, velocityY, boundaryDictionary, position) #determine where we are hitting
     
-            
+        newX = -1
+        newY = -1
+        newAngle = 0    
         #reflect to new X and Y coords -- SIMPLE 1 Bounce
         if len(wallHit) == 1:
             newX, newY, newAngle = self.oneBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)

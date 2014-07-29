@@ -26,7 +26,7 @@ print "BD:  ", boundaryDictionary
 db_mean = hb.get_distance_mean(map)
 print "Distance Between Mean: ", db_mean  
 
-last5_db_mean = hb.get_distance_mean(map[-5:])
+last5_db_mean = hb.get_distance_mean(map[-7:])
 print "Last 5 DB Mean:  ", last5_db_mean
 
 #####TESTING AREA#####
@@ -34,9 +34,9 @@ print "Last 5 DB Mean:  ", last5_db_mean
 #hu.write_map_to_file(map)
 
 #hv = hexbug_visualization()
-#hv.scatter_plot_it(map[100:250])
+#hv.scatter_plot_it(map[25801:25826])
 
 #####REAL DATA RUN AREA####
-predict_map = hb.predict_next(map, last5_db_mean, 150, boundaryDictionary)
+predict_map = hb.predict_next(map, last5_db_mean, 75, boundaryDictionary)
 print predict_map
 

@@ -4,7 +4,7 @@ import numpy as np
 def nothing(x):
     pass
 
-cap = cv2.VideoCapture('hexbug-training_video.mp4')
+cap = cv2.VideoCapture('hexbug-training_video-transcoded.mp4')
 fout = open('centroid_data','w')
 fout.write('[')
 

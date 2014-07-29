@@ -216,7 +216,7 @@ class hexbug:
                 newX = boundaryDictionary[wallHit[0][0]] - (velocityX - dist2wall) #max X value minus leftover velocity
             else: #left
                 newX = boundaryDictionary[wallHit[0][0]] + (velocityX - dist2wall) #min X value plus leftover velocity        
-                return newX, newY, newAngle
+        return newX, newY, newAngle
     
     def twoBounce(self, wallHit, position, velocityX, velocityY, angle, boundaryDictionary):
         newAngle = angle
@@ -238,7 +238,7 @@ class hexbug:
                 else: #left
                     newX = boundaryDictionary[wallHit[i][0]] + (velocityX - dist2wall) #min X value plus leftover velocity
                     print "newX, newAngle: ", newX, newAngle, "heading of new angle: ", self.getHeading(newAngle)
-                    return newX, newY, newAngle
+        return newX, newY, newAngle
     
     def bounce(self, position, velocity, angle, boundaryDictionary):
         """Function receives a center of mass position, velocity and angle,
@@ -249,6 +249,10 @@ class hexbug:
         impacted by the bounce.
         Function should be called after a check that we are within 1 move of a wall."""
         
+        print "bounce:position:  ", position
+        print "bounce:velocity:  ", velocity
+        print "bounce:angle:  ", angle
+        print "bounce:BD:  ", boundaryDictionary
         angle = angle%(2.0*pi) #ensure angle is % 2*pi
                   
         heading = self.getHeading(angle) #ensure angle is CCW direction (no negative angles)
@@ -257,16 +261,19 @@ class hexbug:
           
         wallHit = self.whichWallHit(heading, velocityX, velocityY, boundaryDictionary, position) #determine where we are hitting
     
+        #Initialize vars  
         newX = -1
         newY = -1
         newAngle = 0    
 
         #reflect to new X and Y coords -- SIMPLE 1 Bounce
         if len(wallHit) == 1:
+            print "1 BOUNCE"
             newX, newY, newAngle = self.oneBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
            
         #reflect to new X and Y coords: corner hit with first and then second bounces
         if len(wallHit) == 2:
+            print "2 BOUNCE"
             newX, newY, newAngle = self.twoBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
         
         #quick error check

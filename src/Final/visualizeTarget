@@ -1,0 +1,66 @@
+import turtle
+import fileinput
+import re
+
+def visualize_target(target_xy_file, shift_factor, boundary_points):
+    target_xy = []
+
+    #Read file with target positions
+    for line in fileinput.input(target_xy_file):
+        
+        value_trim_br = re.sub('\[*','',line)           #Remove opening brackets
+        value_trim_br = re.sub('\]*','',value_trim_br)  #Remove closing brackets
+        temp_value = value_trim_br.split(',')
+        if not temp_value[0].isspace():                 #Ignore blank lines of input
+            value0 = float(temp_value[0])-shift_factor
+            value1 = float(temp_value[1])-shift_factor
+            value = [value0, value1]
+            target_xy.append( value )
+
+
+    print target_xy
+    #Set window properties
+    window = turtle.Screen()
+    window.bgcolor("white")
+
+    #Set target properties
+    target=turtle.Turtle()
+    target.color("blue")
+    target.shape("blank")
+    target.pendown()
+    target.pensize(1)   
+
+    #Set boundary properties
+    boundary=turtle.Turtle()
+    boundary.color("black")
+    boundary.shape("blank")
+    boundary.pensize(1)
+    boundary.penup()
+    boundary.setposition(boundary_points[0],boundary_points[1])
+    boundary.pendown()
+    boundary.setposition(boundary_points[2],boundary_points[1])
+    boundary.setposition(boundary_points[2],boundary_points[3])
+    boundary.setposition(boundary_points[0],boundary_points[3])
+    boundary.setposition(boundary_points[0],boundary_points[1])
+
+    #Draw target path
+    for i in range(len(target_xy)):
+        target.goto(target_xy[i])
+
+    window.exitonclick()        # wait for a user click on the canvas
+
+########Input file to read target movements in the box#######
+target_xy_file = "C:/Users/Sergey/Desktop/testfile.txt"
+
+########boundary_points=[min_x, min_y, max_x, max_y]###########
+min_x=8
+min_y=75
+max_x=836
+max_y=460
+
+temp=[min_x, min_y, max_x, max_y]
+shift_factor=300.0              #Scale boundary points and target positions to fit in the popup window
+boundary_points=[i-shift_factor for i in temp] 
+
+#Call visualize_target function
+visualize_target(target_xy_file, shift_factor, boundary_points)

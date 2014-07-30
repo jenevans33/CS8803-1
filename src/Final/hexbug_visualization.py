@@ -34,7 +34,7 @@ class hexbug_visualization:
         
         
     
-    def visualize_target(target_xy_array, shift_factor, boundary_pts):
+    def visualize_target(self, target_xy_array, shift_factor, boundary_pts):
         #This function produces a visual of the targets movement in the box. Passed in are the target positions  
         #array (target_xy), factor to shift x,y by a certain amount (shift_factor), and boundary points 
         #array in the form [min_x, min_y, max_x, max_y]
@@ -44,6 +44,7 @@ class hexbug_visualization:
         #Shift boundary points to fit in the popup window
         boundary_points=[i-shift_factor for i in temp]  
         
+        target_xy = []
         #Shift target positions to fit in the popup window
         for j in range(len(target_xy_array)):
                 value0=target_xy_array[j][0]-shift_factor

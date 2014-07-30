@@ -2,8 +2,9 @@ import re
 
 class hexbug_utility:
 
-    def __init__(self, outfile='map_file.txt'):
+    def __init__(self, outfile='map_file.txt', debug=False):
         self.outfile = outfile
+        self.debug = debug
         
     def get_input(self, filename):
         #Read in the input file and create array of the data points.

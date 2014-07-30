@@ -4,9 +4,10 @@ import re
 
 class hexbug_visualization:
 
-    def __init__(self, x_data=[], y_data=[]):
+    def __init__(self, x_data=[], y_data=[], debug=False):
         self.x_data = x_data
         self.y_data = y_data
+        self.debug = debug
         
     def scatter_plot_it(self, map):
         #This produces a very simple scatter plot of the coordinate data passed in.  You should only pass in a slice

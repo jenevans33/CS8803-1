@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import turtle
+import re
 
 class hexbug_visualization:
 
@@ -29,3 +31,54 @@ class hexbug_visualization:
         ax.set_ylabel("y")
         # Produce an image.
         plt.show()
+        
+        
+    
+    def visualize_target(target_xy_array, shift_factor, boundary_pts):
+        #This function produces a visual of the targets movement in the box. Passed in are the target positions  
+        #array (target_xy), factor to shift x,y by a certain amount (shift_factor), and boundary points 
+        #array in the form [min_x, min_y, max_x, max_y]
+        
+        #Define the boundary points: [min_x, min_y, max_x, max_y]
+        temp=[boundary_pts[0], boundary_pts[1], boundary_pts[2], boundary_pts[3]]
+        #Shift boundary points to fit in the popup window
+        boundary_points=[i-shift_factor for i in temp]  
+        
+        #Shift target positions to fit in the popup window
+        for j in range(len(target_xy_array)):
+                value0=target_xy_array[j][0]-shift_factor
+                value1=target_xy_array[j][1]-shift_factor
+                value = [value0, value1]
+                target_xy.append( value )
+        
+        #Set window properties
+        window = turtle.Screen()
+        window.bgcolor("white")
+
+        #Set target properties
+        target=turtle.Turtle()
+        target.color("blue")
+        target.shape("blank")
+        target.pendown()
+        target.pensize(1)   
+
+        #Set boundary properties
+        boundary=turtle.Turtle()
+        boundary.color("black")
+        boundary.shape("blank")
+        boundary.pensize(1)
+        boundary.penup()
+        boundary.setposition(boundary_points[0],boundary_points[1])
+        boundary.pendown()
+        boundary.setposition(boundary_points[2],boundary_points[1])
+        boundary.setposition(boundary_points[2],boundary_points[3])
+        boundary.setposition(boundary_points[0],boundary_points[3])
+        boundary.setposition(boundary_points[0],boundary_points[1])
+
+        #Draw target path
+        for i in range(len(target_xy)):
+            target.goto(target_xy[i])
+
+        window.exitonclick()        # wait for a user click on the canvas
+        
+        

@@ -3,9 +3,10 @@ from math import *
 
 class hexbug:
 
-    def __init__(self, x=0, y=0):
+    def __init__(self, x=0, y=0, debug=False):
         self.x = x
         self.y = y
+        self.debug = debug
         
     def distance_between(self, point1, point2):
         """Computes distance between point1 and point2. Points are (x, y) pairs."""
@@ -65,12 +66,12 @@ class hexbug:
     
     def simple_next_move(self, current, distance, heading):
         #Simple next move.  Take current move, avg distance, and heading to predict next spot.
-        print "SNM-CURRENT POS:  ", current
-        print "SNM-DISTANCE:  ", distance
-        print "SNM-HEADING:  ", heading
+        if self.debug: print "SNM-CURRENT POS:  ", current
+        if self.debug: print "SNM-DISTANCE:  ", distance
+        if self.debug: print "SNM-HEADING:  ", heading
         x = current[0] + distance * cos(heading)
         y = current[1] + distance * sin(heading)   
-        print "SNM-NEXT POS:  ", (x,y)  
+        if self.debug: print "SNM-NEXT POS:  ", (x,y)  
         return (int(x), int(y))
         
     def get_distance_mean(self, map):
@@ -119,11 +120,11 @@ class hexbug:
         hitWall = False
         for i in range(frames):
             x,y = self.simple_next_move(curpoint["cur_point"], dist, curpoint["angle"])
-            print "PN-CURPOINT:  ", curpoint
+            if self.debug: print "PN-CURPOINT:  ", curpoint
             #does x or y hit a boundary
             if (x <= boundaryDictionary["left"] or x >= boundaryDictionary["right"]) and not hitWall:
                 #hit x boundary
-                print "HIT X BOUNDARY WITH PREDICTED POINT:  ", (x,y)
+                if self.debug: print "HIT X BOUNDARY WITH PREDICTED POINT:  ", (x,y)
                 curX, curY = curpoint["cur_point"]
                 diffX = abs(x - curX)
                 diffY = abs(y - curY)
@@ -133,7 +134,7 @@ class hexbug:
                 hitWall = True
             elif (y <= boundaryDictionary["bottom"] or y >= boundaryDictionary["top"]) and not hitWall:
                 #hit y boundary
-                print "HIT Y BOUNDARY WITH PREDICTED POINT:  ", (x,y)
+                if self.debug: print "HIT Y BOUNDARY WITH PREDICTED POINT:  ", (x,y)
                 curX, curY = curpoint["cur_point"]
                 diffX = abs(x - curX)
                 diffY = abs(y - curY)            
@@ -143,7 +144,7 @@ class hexbug:
                 hitWall = True           
             else:
                 #didn't hit a boundary
-                print "NO BOUNDARY HIT"
+                if self.debug: print "NO BOUNDARY HIT"
                 hm = {"coord" : [x,y]}
                 curpoint = {"cur_point" : [x,y], "angle" : curpoint["angle"]}
                 hitWall = False
@@ -166,36 +167,36 @@ class hexbug:
     
     def whichWallHit(self, heading, velocityX, velocityY, boundaryDictionary, position):
         #which wall are we hitting?
-        print "VelocityX:  ", velocityX
-        print "VelocityY:  ", velocityY
-        print "Heading:  ", heading
-        print "Position:  ", position
+        if self.debug: print "VelocityX:  ", velocityX
+        if self.debug: print "VelocityY:  ", velocityY
+        if self.debug: print "Heading:  ", heading
+        if self.debug: print "Position:  ", position
         wallHit = []
         if heading["vertical"] == "up": #check distance from top
-            print "GOING UP"
+            if self.debug: print "GOING UP"
             distance = abs(position[1] - boundaryDictionary["top"])
             if distance <= velocityY:
                 wallHit.append(["top", distance])
         else: #heading["vertical"] == "down" so check distance from bottom
-            print "GOING DOWN"
+            if self.debug: print "GOING DOWN"
             distance = abs(position[1] - boundaryDictionary["bottom"])
             if distance <= velocityY:
                 wallHit.append(["bottom", distance])
         
         if heading["horizontal"] == "right": #check distance from right
-            print "GOING RIGHT"
+            if self.debug: print "GOING RIGHT"
             distance = abs(position[0] - boundaryDictionary["right"])
             if distance <= velocityX:
                 wallHit.append(["right", distance])
         else: # heading["horizontal"] == "left": #check distance from left
-            print "GOING LEFT"
+            if self.debug: print "GOING LEFT"
             distance = abs(position[0] - boundaryDictionary["left"])
             if distance <= velocityX:
                 wallHit.append(["left", distance])
                 
         if len(wallHit) > 1: #need to sort in order of wall hit first
             wallHit.sort()
-        print "Wallhit", wallHit ##CODE TESTING
+        if self.debug: print "Wallhit", wallHit ##CODE TESTING
         return wallHit
     
     
@@ -223,21 +224,21 @@ class hexbug:
         for i in range(2):
             dist2wall = wallHit[i][1]
             if (wallHit[i][0] == "top") or (wallHit[i][0] == "bottom"):
-                print "Corner Bounce. Wall Hit ", i, " is ", wallHit[i][0] 
+                if self.debug: print "Corner Bounce. Wall Hit ", i, " is ", wallHit[i][0] 
                 newAngle = (2.0*pi - newAngle)%(2.0*pi)
                 if (wallHit[i][0] == "bottom"):
                     newY = boundaryDictionary[wallHit[i][0]] - (velocityY - dist2wall) #max Y value minues leftover velocity
                 else: #top
                     newY = boundaryDictionary[wallHit[i][0]] + (velocityY - dist2wall) #min Y value plus leftover velocity           
-                    print "newY, newAngle: ", newY, newAngle, "heading of new angle: ", self.getHeading(newAngle)
+                    if self.debug: print "newY, newAngle: ", newY, newAngle, "heading of new angle: ", self.getHeading(newAngle)
             elif (wallHit[i][0] == "left") or (wallHit[i][0] == "right"):
-                print "Corner Bounce. Wall Hit ", i, " is ", wallHit[i][0]
+                if self.debug: print "Corner Bounce. Wall Hit ", i, " is ", wallHit[i][0]
                 newAngle = (pi - newAngle)%(2.0*pi)
                 if (wallHit[i][0] == "right"):
                     newX = boundaryDictionary[wallHit[i][0]] - (velocityX - dist2wall) #max X value minus leftover velocity
                 else: #left
                     newX = boundaryDictionary[wallHit[i][0]] + (velocityX - dist2wall) #min X value plus leftover velocity
-                    print "newX, newAngle: ", newX, newAngle, "heading of new angle: ", self.getHeading(newAngle)
+                    if self.debug: print "newX, newAngle: ", newX, newAngle, "heading of new angle: ", self.getHeading(newAngle)
         return newX, newY, newAngle
     
     def bounce(self, position, velocity, angle, boundaryDictionary):
@@ -249,16 +250,13 @@ class hexbug:
         impacted by the bounce.
         Function should be called after a check that we are within 1 move of a wall."""
         
-        print "bounce:position:  ", position
-        print "bounce:velocity:  ", velocity
-        print "bounce:angle:  ", angle
-        print "bounce:BD:  ", boundaryDictionary
-        angle = angle%(2.0*pi) #ensure angle is % 2*pi
-                  
-        heading = self.getHeading(angle) #ensure angle is CCW direction (no negative angles)
-                           
-        velocityX, velocityY = velocity #get X and Y components of velocity vector
-          
+        if self.debug: print "bounce:position:  ", position
+        if self.debug: print "bounce:velocity:  ", velocity
+        if self.debug: print "bounce:angle:  ", angle
+        if self.debug: print "bounce:BD:  ", boundaryDictionary
+        angle = angle%(2.0*pi) #ensure angle is % 2*pi                  
+        heading = self.getHeading(angle) #ensure angle is CCW direction (no negative angles)                          
+        velocityX, velocityY = velocity #get X and Y components of velocity vector          
         wallHit = self.whichWallHit(heading, velocityX, velocityY, boundaryDictionary, position) #determine where we are hitting
     
         #Initialize vars  
@@ -268,12 +266,12 @@ class hexbug:
 
         #reflect to new X and Y coords -- SIMPLE 1 Bounce
         if len(wallHit) == 1:
-            print "1 BOUNCE"
+            if self.debug: print "1 BOUNCE"
             newX, newY, newAngle = self.oneBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
            
         #reflect to new X and Y coords: corner hit with first and then second bounces
         if len(wallHit) == 2:
-            print "2 BOUNCE"
+            if self.debug: print "2 BOUNCE"
             newX, newY, newAngle = self.twoBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
         
         #quick error check

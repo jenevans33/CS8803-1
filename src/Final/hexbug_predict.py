@@ -12,7 +12,7 @@ hu = hexbug_utility()
 input_array = hu.get_input(input_file)
 
 #Process input array to get map and boundaries of box
-hb = hexbug()
+hb = hexbug(debug=True)
 map, minX, maxX, minY, maxY = hb.process(input_array)
 print "Min X:  ", minX
 print "Max X:  ", maxX
@@ -35,8 +35,9 @@ print "Last 5 DB Mean:  ", last5_db_mean
 
 #hv = hexbug_visualization()
 #hv.scatter_plot_it(map[25801:25826])
+#hv.visualize_target(map[25801:25826], 375, [minX, minY, maxX, maxY])
 
 #####REAL DATA RUN AREA####
-predict_map = hb.predict_next(map, last5_db_mean, 75, boundaryDictionary)
+predict_map = hb.predict_next(map, last5_db_mean, 150, boundaryDictionary)
 print predict_map
 

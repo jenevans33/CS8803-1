@@ -14,6 +14,21 @@ class hexbug:
         x2, y2 = point2
         return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
     
+    def root_error_rate(self, actual, predicted):
+        if len(actual) != len(predicted):
+            raise Exception('Actual and Predicted arrays have to be same size')
+        total_err = 0
+        for i in range(len(actual)):
+            if self.debug: print "PREDICTED X:  ", predicted[i][0]
+            if self.debug: print "ACTUAL X:  ", actual[i][0]
+            if self.debug: print "PREDICTED Y:  ", predicted[i][1]
+            if self.debug: print "ACTUAL Y:  ", actual[i][1]
+            xdiff = (predicted[i][0] - actual[i][0])**2
+            ydiff = (predicted[i][1] - actual[i][1])**2
+            total_err += (xdiff + ydiff)
+            
+        return sqrt(total_err)
+               
     def process(self, in_a):
         #Iterate through the array.  Check point against last point for distance and angle and build hashmap (or in python
         #an array of dicts).  All -1, -1 points are bad so make a note of it and don't use the distances or angles.  

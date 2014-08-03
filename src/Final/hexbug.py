@@ -18,14 +18,18 @@ class hexbug:
         if len(actual) != len(predicted):
             raise Exception('Actual and Predicted arrays have to be same size')
         total_err = 0
+        iterate = 0
         for i in range(len(actual)):
             if self.debug: print "PREDICTED X:  ", predicted[i][0]
             if self.debug: print "ACTUAL X:  ", actual[i][0]
             if self.debug: print "PREDICTED Y:  ", predicted[i][1]
             if self.debug: print "ACTUAL Y:  ", actual[i][1]
-            xdiff = (predicted[i][0] - actual[i][0])**2
-            ydiff = (predicted[i][1] - actual[i][1])**2
-            total_err += (xdiff + ydiff)
+            if actual[i][0] >= 0 and actual[i][1] >= 0:
+                xdiff = (predicted[i][0] - actual[i][0])**2
+                ydiff = (predicted[i][1] - actual[i][1])**2
+                total_err += (xdiff + ydiff)
+                iterate += 1
+        if self.debug: print "NUM ITERATIONS USED IN ROOT ERROR:  " , iterate   
             
         return sqrt(total_err)
                

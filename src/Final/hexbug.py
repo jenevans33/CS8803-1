@@ -97,7 +97,7 @@ class hexbug:
                 dblist.append(map[i]["db"])   
         return np.mean(dblist) 
     
-    def test_prediction(self, mapfile, d, boundaryDictionary, start=None, stop=None):
+    def test_prediction(self, mapfile, boundaryDictionary, frames, start=None, stop=None):
         #test predict next steps.  This is just for testing out the code.  The real predict next
         #function to use for getting the frames to turn in will be predict_next()
         if start and not stop:
@@ -111,24 +111,39 @@ class hexbug:
             #no start and no stop...do whole map
             #Need to really work on this because a bad point will blow this whole thing up.
             ta = mapfile
-           
-        pm = []
-        for i in range(len(ta)):
-            cur_point = ta[i]
-            x,y = self.simple_next_move(cur_point["cur_point"], d, cur_point["angle"])
-            hm = {"coord" : [x,y]}
-            pm.append(hm)
-            
-        return pm
+        
+        dist = self.get_distance_mean(ta[-5:])
+        if self.debug:  print "TP - DIST:  ", dist
+        #Get predicted map   
+        predicted_map = self.predict_next(ta, dist, frames, boundaryDictionary)
+        
+        #Get actual map
+        first_step = stop - 1
+        actual_map = mapfile[first_step:first_step + frames]
+        
+        if len(predicted_map) != len(actual_map):
+            raise Exception('Predicted Map and Actual Map lengths do not match...that is a problem')
+        
+        actual_coords = []
+        predicted_coords = []
+        for i in range(len(actual_map)):
+            actual_coords.append(actual_map[i]["cur_point"])
+        
+        for i in range(len(predicted_map)):
+            predicted_coords.append(predicted_map[i]["coord"])  
+             
+        if self.debug:  print "ACTUAL COORDS:  ", actual_coords
+        if self.debug:  print "PREDICTED COORDS:  ", predicted_coords
+        
+        error_rate = self.root_error_rate(actual_coords, predicted_coords)
+        
+        return error_rate
     
     def predict_next(self, mapfile, dist, frames, boundaryDictionary):
         #predict the next n number of frames
         
         #TODO:  instead of just arbitrarily using the current angle I think we should analyze the last say 5 points and
         #       angles to make sure the last one is not an anomaly.  If it is use the mean of the correct ones.
-        
-        #TODO:  when we get the point back from next_move need to make sure it wouldn't have hit a wall and bounced.  
-        #       if it would then call the bounce function and replace the coordinates and angle with that.
         
         curpoint = mapfile[len(mapfile) - 2]
         pm = []

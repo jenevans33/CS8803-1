@@ -3,16 +3,42 @@ from math import *
 
 class hexbug:
 
-    def __init__(self, x=0, y=0, debug=False):
-        self.x = x
-        self.y = y
+    def __init__(self, debug=False):
         self.debug = debug
+        #KF Setup
+        
+        self.X = np.matrix([[0.], [0.]]) # initial state (location and velocity)
+        self.u = np.matrix([[0.], [0.]]) # external motion
+        
+        self.F =  np.matrix([[1.0, 0.0], [0.0, 1.0]])
+        self.H =  np.matrix([[1.0, 0.0], [0.0, 1.0]])
+        self.R =  np.matrix([[0.1, 0.0], [0.0, 0.1]])
+        self.I =  np.matrix([[1.0, 0.0], [0.0, 1.0]])
+        self.P =  np.matrix([[1000.0, 0.0], [0.0, 1000.0]])        
         
     def distance_between(self, point1, point2):
         """Computes distance between point1 and point2. Points are (x, y) pairs."""
         x1, y1 = point1
         x2, y2 = point2
         return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    
+    def kalman_filter(self, x, P, meas):  
+        if self.debug: print "KF - x:  ", x
+        if self.debug: print "KF - P:  ", P
+        if self.debug: print "KF - meas:  ", meas        
+        # prediction
+        x = (self.F * x) + self.u
+        P = self.F * P * self.F.transpose()
+        
+        # measurement update
+        self.Z = np.matrix([[meas[0]], [meas[1]]])
+        self.y = self.Z.transpose() - (self.H * x)
+        self.S = self.H * P * self.H.transpose() + self.R
+        self.K = P * self.H.transpose() * np.linalg.inv(self.S)
+        x = x + (self.K * self.y)
+        P = (self.I - (self.K * self.H)) * P
+    
+        return x, P
     
     def root_error_rate(self, actual, predicted):
         if len(actual) != len(predicted):
@@ -44,6 +70,9 @@ class hexbug:
         previous_point = None
         for i in range(len(in_a)):
             if in_a[i] != [-1, -1]:
+                #Train the kalman filter with all the data available 
+                self.X, self.P = self.kalman_filter(np.matrix([[in_a[i][0]],[in_a[i][1]]]), self.P, in_a[i])
+                
                 allX.append(in_a[i][0])
                 allY.append(in_a[i][1])
                 if previous_point:
@@ -154,6 +183,11 @@ class hexbug:
         hitWall = False
         for i in range(frames):
             x,y = self.simple_next_move(curpoint["cur_point"], dist, curpoint["angle"])
+            if self.debug:  print "OLDX and OLDY:  ", (x, y)
+            newx, self.P = self.kalman_filter(np.matrix([[x],[y]]), self.P, [x,y])
+            x = newx.item(1)
+            y = newx.item(2)
+            if self.debug:  print "NEWX and NEWY:  ", (x, y)
             if self.debug: print "PN-CURPOINT:  ", curpoint
             #does x or y hit a boundary
             if (x <= boundaryDictionary["left"] or x >= boundaryDictionary["right"]) and not hitWall:

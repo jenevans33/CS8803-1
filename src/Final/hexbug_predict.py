@@ -30,12 +30,12 @@ last5_db_mean = hb.get_distance_mean(map[-7:])
 print "Last 5 DB Mean:  ", last5_db_mean
 
 #####TESTING AREA#####
-error_rate = hb.test_prediction(map, boundaryDictionary, 63, 1, 400)
+error_rate, pm = hb.test_prediction(map, boundaryDictionary, 63, 1, 400)
 print "FINAL ERROR:  ", error_rate
 #hu.write_map_to_file(map)
 
-#hv = hexbug_visualization()
-#hv.scatter_plot_it(map[25801:25826])
+hv = hexbug_visualization()
+hv.plot_old_new(map[400:464], pm)
 #hv.visualize_target(map[25801:25826], 375, [minX, minY, maxX, maxY])
 
 #####REAL DATA RUN AREA####

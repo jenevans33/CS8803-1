@@ -4,27 +4,27 @@ import re
 
 class hexbug_visualization:
 
-    def __init__(self, x_data=[], y_data=[], debug=False):
-        self.x_data = x_data
-        self.y_data = y_data
+    def __init__(self, debug=False):
         self.debug = debug
         
     def scatter_plot_it(self, map):
         #This produces a very simple scatter plot of the coordinate data passed in.  You should only pass in a slice
         #of the total data (100 - 200 points max) or else the points get so tightly bundled you can't really make much 
         #out of it.  This is purely for testing and analysis purposes.
-
+        
+        x_data = []
+        y_data = []
         for i in range(len(map)):
             if map[i]["cur_point"] != [-1, -1]:
-                self.x_data.append(map[i]["cur_point"][0]) 
-                self.y_data.append(map[i]["cur_point"][1])
+                x_data.append(map[i]["cur_point"][0]) 
+                y_data.append(map[i]["cur_point"][1])
                 
         # Create a Figure object.
         fig = plt.figure(figsize=(10, 8))
         # Create an Axes object.
         ax = fig.add_subplot(1,1,1) # one row, one column, first plot
         # Plot the data.
-        ax.scatter(self.x_data, self.y_data, color="blue", marker="o")
+        ax.scatter(x_data, y_data, color="blue", marker="o")
         # Add a title.
         ax.set_title("Hexbug Scatter Plot")
         # Add some axis labels.
@@ -33,7 +33,38 @@ class hexbug_visualization:
         # Produce an image.
         plt.show()
         
+    def plot_old_new(self, oldmap, newmap):
+        #This produces a very simple scatter plot of the coordinate data passed in.  You should only pass in a slice
+        #of the total data (100 - 200 points max) or else the points get so tightly bundled you can't really make much 
+        #out of it.  This is purely for testing and analysis purposes.
         
+        oldx_data = []
+        oldy_data = []
+        for i in range(len(oldmap)):
+            if oldmap[i]["cur_point"] != [-1, -1]:
+                oldx_data.append(oldmap[i]["cur_point"][0]) 
+                oldy_data.append(oldmap[i]["cur_point"][1])
+        
+        newx_data = []
+        newy_data = []
+        for j in range(len(newmap)):
+            newx_data.append(newmap[j]["coord"][0])
+            newy_data.append(newmap[j]["coord"][1])
+                
+        # Create a Figure object.
+        fig = plt.figure(figsize=(10, 8))
+        # Create an Axes object.
+        ax = fig.add_subplot(1,1,1) # one row, one column, first plot
+        # Plot the data.
+        ax.scatter(oldx_data, oldy_data, color="blue", marker="o")
+        ax.scatter(newx_data, newy_data, color="red", marker="^")
+        # Add a title.
+        ax.set_title("Hexbug Scatter Plot")
+        # Add some axis labels.
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        # Produce an image.
+        plt.show()        
     
     def visualize_target(self, target_map, shift_factor, boundary_pts):
         #This function produces a visual of the targets movement in the box. Passed in are the target positions  

@@ -12,7 +12,7 @@ hu = hexbug_utility()
 input_array = hu.get_input(input_file)
 
 #Process input array to get map and boundaries of box
-hb = hexbug(debug=True)
+hb = hexbug(debug=False)
 map, minX, maxX, minY, maxY = hb.process(input_array)
 print "Min X:  ", minX
 print "Max X:  ", maxX

@@ -1,5 +1,7 @@
 import numpy as np
 from math import *
+nonHitVelocityDecrease = 0.48 #to be used to reduce the velocity in the direction not of impact on a bounce
+hitVelocityDecrease = 0.34 #to be used to reduce the velocty in the direction of impact on a bounce
 
 class hexbug:
 
@@ -196,7 +198,7 @@ class hexbug:
                 curX, curY = curpoint["cur_point"]
                 diffX = abs(x - curX)
                 diffY = abs(y - curY)
-                (x,y), angle = self.bounce(curpoint["cur_point"], (diffX,diffY), curpoint["angle"], boundaryDictionary)
+                (x,y), angle, (velX, velY) = self.bounce(curpoint["cur_point"], (diffX,diffY), curpoint["angle"], boundaryDictionary)
                 hm = {"coord" : [x,y]}
                 curpoint = {"cur_point" : [x,y], "angle" : angle}
                 hitWall = True
@@ -206,7 +208,7 @@ class hexbug:
                 curX, curY = curpoint["cur_point"]
                 diffX = abs(x - curX)
                 diffY = abs(y - curY)            
-                (x,y), angle = self.bounce(curpoint["cur_point"], (diffX,diffY), curpoint["angle"], boundaryDictionary)
+                (x,y), angle, (velX, velY) = self.bounce(curpoint["cur_point"], (diffX,diffY), curpoint["angle"], boundaryDictionary)
                 hm = {"coord" : [x,y]}
                 curpoint = {"cur_point" : [x,y], "angle" : angle} 
                 hitWall = True           
@@ -270,44 +272,50 @@ class hexbug:
     
     def oneBounce(self, wallHit, position, velocityX, velocityY, angle, boundaryDictionary):
         dist2wall = wallHit[0][1]
-        if (wallHit[0][0] == "top") or (wallHit[0][0] == "bottom"):
-            newX = (position[0] + velocityX) #X just keeps moving same direction
-            newAngle = (2.0*pi - angle)%(2.0*pi)
+        if (wallHit[0][0] == "top") or (wallHit[0][0] == "bottom"): #Y-Hit Direction
+            newVelocityX = nonHitVelocityDecrease * velocityX # A hit in the Y direction, so nonHit velocity decrease
+            newX = (position[0] + newVelocityX) #X just keeps moving same direction
+            newAngle = (2.0*pi - angle)%(2.0*pi) #reflection bounce back and same angle hit (mirror image)
+            newVelocityY = hitVelocityDecrease * velocityY #A hit in Y direction, so Hit Velocity Decrease
             if (wallHit[0][0] == "bottom"):
-                newY = boundaryDictionary[wallHit[0][0]] - (velocityY - dist2wall) #max Y value minues leftover velocity
+                newY = boundaryDictionary[wallHit[0][0]] - (newVelocityY - dist2wall) #max Y value minues leftover velocity
             else: #top
-                newY = boundaryDictionary[wallHit[0][0]] + (velocityY - dist2wall) #min Y value plus leftover velocity           
+                newY = boundaryDictionary[wallHit[0][0]] + (newVelocityY - dist2wall) #min Y value plus leftover velocity           
         
-        elif (wallHit[0][0] == "left") or (wallHit[0][0] == "right"):
-            newY = (position[1] + velocityY)  #Y just keeps moving same direction
-            newAngle = (pi - angle)%(2.0*pi)
+        elif (wallHit[0][0] == "left") or (wallHit[0][0] == "right"): #X-Hit Direction
+            newVelocityY = nonHitVelocityDecrease * velocityY # A hit in the X direction, so nonHit velocity decrease
+            newY = (position[1] + newVelocityY)  #Y just keeps moving same direction
+            newAngle = (pi - angle)%(2.0*pi) #reflection bounce back and same angle hit (mirror image)
+            newVelocityX = hitVelocityDecrease * velocityX #A hit in X direction, so Hit Velocity Decrease
             if (wallHit[0][0] == "right"):
-                newX = boundaryDictionary[wallHit[0][0]] - (velocityX - dist2wall) #max X value minus leftover velocity
+                newX = boundaryDictionary[wallHit[0][0]] - (newVelocityX - dist2wall) #max X value minus leftover velocity
             else: #left
-                newX = boundaryDictionary[wallHit[0][0]] + (velocityX - dist2wall) #min X value plus leftover velocity        
-        return newX, newY, newAngle
+                newX = boundaryDictionary[wallHit[0][0]] + (newVelocityX - dist2wall) #min X value plus leftover velocity        
+        return newX, newY, newAngle, newVelocityX, newVelocityY
     
     def twoBounce(self, wallHit, position, velocityX, velocityY, angle, boundaryDictionary):
         newAngle = angle
         for i in range(2):
             dist2wall = wallHit[i][1]
-            if (wallHit[i][0] == "top") or (wallHit[i][0] == "bottom"):
+            if (wallHit[i][0] == "top") or (wallHit[i][0] == "bottom"): #Y-hit Direction
                 if self.debug: print "Corner Bounce. Wall Hit ", i, " is ", wallHit[i][0] 
-                newAngle = (2.0*pi - newAngle)%(2.0*pi)
+                newAngle = (2.0*pi - newAngle)%(2.0*pi) #reflection bounce back and same angle hit (mirror image)
+                newVelocityY = hitVelocityDecrease * velocityY #A hit in Y direction, so Hit Velocity Decrease
                 if (wallHit[i][0] == "bottom"):
                     newY = boundaryDictionary[wallHit[i][0]] - (velocityY - dist2wall) #max Y value minues leftover velocity
                 else: #top
                     newY = boundaryDictionary[wallHit[i][0]] + (velocityY - dist2wall) #min Y value plus leftover velocity           
                     if self.debug: print "newY, newAngle: ", newY, newAngle, "heading of new angle: ", self.getHeading(newAngle)
-            elif (wallHit[i][0] == "left") or (wallHit[i][0] == "right"):
+            elif (wallHit[i][0] == "left") or (wallHit[i][0] == "right"): #X-hit Direction
                 if self.debug: print "Corner Bounce. Wall Hit ", i, " is ", wallHit[i][0]
-                newAngle = (pi - newAngle)%(2.0*pi)
+                newAngle = (pi - newAngle)%(2.0*pi) #reflection bounce back and same angle hit (mirror image)
+                newVelocityX = hitVelocityDecrease * velocityX #A hit in X direction, so Hit Velocity Decrease
                 if (wallHit[i][0] == "right"):
                     newX = boundaryDictionary[wallHit[i][0]] - (velocityX - dist2wall) #max X value minus leftover velocity
                 else: #left
                     newX = boundaryDictionary[wallHit[i][0]] + (velocityX - dist2wall) #min X value plus leftover velocity
                     if self.debug: print "newX, newAngle: ", newX, newAngle, "heading of new angle: ", self.getHeading(newAngle)
-        return newX, newY, newAngle
+        return newX, newY, newAngle, newVelocityX, newVelocityY
     
     def bounce(self, position, velocity, angle, boundaryDictionary):
         """Function receives a center of mass position, velocity and angle,
@@ -335,12 +343,12 @@ class hexbug:
         #reflect to new X and Y coords -- SIMPLE 1 Bounce
         if len(wallHit) == 1:
             if self.debug: print "1 BOUNCE"
-            newX, newY, newAngle = self.oneBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
+            newX, newY, newAngle, newVelocityX, newVelocityY = self.oneBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
            
         #reflect to new X and Y coords: corner hit with first and then second bounces
         if len(wallHit) == 2:
             if self.debug: print "2 BOUNCE"
-            newX, newY, newAngle = self.twoBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
+            newX, newY, newAngle, newVelocityX, newVelocityY = self.twoBounce(wallHit, position, velocityX, velocityY, angle, boundaryDictionary)
         
         #quick error check
         if len(wallHit) > 2:
@@ -348,5 +356,5 @@ class hexbug:
             if len(wallHit) == 0:
                 print "oops, something went wrong! No Wall Hits"
             
-        return (newX,newY), newAngle
+        return (newX,newY), newAngle, (newVelocityX, newVelocityY)
             
